@@ -8,7 +8,7 @@
 int main(int argc, char **argv) {
     char *ivalue = NULL;
     char *ovalue = NULL; 
-    char *kvalue = NULL; 
+    int kvalue = 0; 
     char *pvalue = NULL;
     int c;
     char *input = NULL;
@@ -24,7 +24,19 @@ int main(int argc, char **argv) {
                 ovalue = optarg;
                 break;
             case 'k':
-                kvalue = optarg;
+                errno = 0;
+                char *endptr;
+                long val = strtol(optarg, &endptr, 10);
+
+                if (endptr == optarg || *endptr != '\0' || errno == ERANGE) {
+                    fprintf(stderr, "Error: -k requires an integer, got '%s'\n", optarg);
+                    return 1;
+                }
+                if (val < 0 || val > 93) {
+                    fprintf(stderr, "Error: -k value %ld out of range [0, 93]\n", val);
+                    return 1;
+                }
+                kvalue = (int)val;
                 break;
             case 'p':
                 pvalue = optarg;
@@ -41,7 +53,7 @@ int main(int argc, char **argv) {
                 abort();
         }
 
-    printf ("ivalue = %s, ovalue = %s, kvalue = %s, pvalue = %s", ivalue, ovalue, kvalue, pvalue);
+    printf ("ivalue = %s, ovalue = %s, kvalue = %d, pvalue = %s", ivalue, ovalue, kvalue, pvalue);
     
     FILE *fp = fopen(ivalue, "r");
     if (!fp) {
