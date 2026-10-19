@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "iokp:")) != -1)
+    while ((c = getopt (argc, argv, "i:o:k:p:")) != -1)
         switch (c) {
             case 'i':
                 ivalue = optarg;
