@@ -3,13 +3,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <errno.h>
 
 int main(int argc, char **argv) {
     char *ivalue = NULL;
     char *ovalue = NULL; 
     char *kvalue = NULL; 
     char *pvalue = NULL;
-    int c; 
+    int c;
+    char *input = NULL;
 
     opterr = 0;
 
@@ -40,4 +42,15 @@ int main(int argc, char **argv) {
         }
 
     printf ("ivalue = %s, ovalue = %s, kvalue = %s, pvalue = %s", ivalue, ovalue, kvalue, pvalue);
+    
+    FILE *fp = fopen(ivalue, "r");
+    if (!fp) {
+        fprintf(stderr, "Could not open '%s': %s\n", ivalue, strerror(errno));
+        return 1;
+    }
+    while (fgets(input, sizeof(input), fp) != NULL) {
+        printf("%s", input);
+    }
+    fclose(fp);
+    return 0;
 }
