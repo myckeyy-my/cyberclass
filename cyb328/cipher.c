@@ -48,9 +48,9 @@ static void print_usage(const char *prog_name)
  * --------------------------------------------------------------------------- */
 static char shift_char(char ch, int key, int direction)
 {
-    unsigned char c = (unsigned char)ch;
-    int offset;
-    int shifted;
+    unsigned char c = (unsigned char)ch; //convert character to unsigned char
+    int offset;  //offset of the character
+    int shifted; //shifted character
 
     /* Leave non-printable / out-of-range characters alone */
     if (c < RANGE_START || c > RANGE_END) {
@@ -58,11 +58,11 @@ static char shift_char(char ch, int key, int direction)
     }
 
     /* Map character into [0, 93], apply signed shift, wrap, map back */
-    offset = (int)c - RANGE_START;
-    shifted = offset + (direction * key);
+    offset = (int)c - RANGE_START;  //map character into [0, 93]
+    shifted = offset + (direction * key); //apply signed shift
 
     /* Positive modulo so the result is always in [0, RANGE_SIZE) */
-    shifted = ((shifted % RANGE_SIZE) + RANGE_SIZE) % RANGE_SIZE;
+    shifted = ((shifted % RANGE_SIZE) + RANGE_SIZE) % RANGE_SIZE; //wrap around the character
 
     return (char)(shifted + RANGE_START);
 }
@@ -74,18 +74,16 @@ static char shift_char(char ch, int key, int direction)
 static void process_buffer(const char *input, char *output, size_t length,
                            int key, int mode_encrypt)
 {
-    size_t i;
-    int direction = mode_encrypt ? 1 : -1;
-
+    size_t i;   //loop counter
+    int direction = mode_encrypt ? 1 : -1;  //check if encrypt or decrypt
     for (i = 0; i < length; i++) {
-        output[i] = shift_char(input[i], key, direction);
+        output[i] = shift_char(input[i], key, direction); //call shift_char function to shift the character
     }
 }
 
 /* ---------------------------------------------------------------------------
  * Read the entire contents of a file into a dynamically allocated buffer.
- * On success, *out_buf points to the data and *out_len is the byte count.
- * The caller must free(*out_buf). Returns 0 on success, -1 on failure.
+ * If success, *out_buf points to the data and *out_len is the byte count.
  * --------------------------------------------------------------------------- */
 static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
 {
@@ -121,26 +119,26 @@ static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
         return -1;
     }
 
-    buf = (char *)malloc((size_t)size + 1);
-    if (!buf) {
+    buf = (char *)malloc((size_t)size + 1);  //allocate memory for the buffer
+    if (!buf) {  //check if the buffer is allocated/not null
         fprintf(stderr, "Error: out of memory reading '%s'\n", path);
         fclose(fp);
         return -1;
     }
 
-    nread = fread(buf, 1, (size_t)size, fp);
-    if (nread != (size_t)size) {
+    nread = fread(buf, 1, (size_t)size, fp);  //read the file into the buffer   
+    if (nread != (size_t)size) {  //check if the file is read completely
         fprintf(stderr, "Error: failed to read entire input file '%s'\n", path);
         free(buf);
         fclose(fp);
         return -1;
     }
 
-    buf[nread] = '\0'; /* null-terminate for convenience (not used for processing) */
-    fclose(fp);
+    buf[nread] = '\0'; // null-terminate
+    fclose(fp);  //close the file
 
-    *out_buf = buf;
-    *out_len = nread;
+    *out_buf = buf;  //point to the buffer
+    *out_len = nread;  //set the length of the buffer
     return 0;
 }
 
@@ -160,14 +158,14 @@ static int write_entire_file(const char *path, const char *buf, size_t length)
         return -1;
     }
 
-    nwritten = fwrite(buf, 1, length, fp);
-    if (nwritten != length) {
+    nwritten = fwrite(buf, 1, length, fp);  //write the buffer to the file
+    if (nwritten != length) {  //check if the file is written completely
         fprintf(stderr, "Error: failed to write entire output file '%s'\n", path);
         fclose(fp);
         return -1;
     }
 
-    if (fclose(fp) != 0) {
+    if (fclose(fp) != 0) {  //close the file
         fprintf(stderr, "Error: failed to close output file '%s': %s\n",
                 path, strerror(errno));
         return -1;
@@ -186,19 +184,19 @@ static int parse_key(const char *arg, int *out_key)
     long val;
 
     errno = 0;
-    val = strtol(arg, &endptr, 10);
+    val = strtol(arg, &endptr, 10);  //convert the string to a long integer
 
-    if (endptr == arg || *endptr != '\0' || errno == ERANGE) {
+    if (endptr == arg || *endptr != '\0' || errno == ERANGE) {  //check if the string is a valid integer
         fprintf(stderr, "Error: -k requires an integer, got '%s'\n", arg);
         return -1;
     }
 
-    if (val < 0 || val > 93) {
+    if (val < 0 || val > 93) {  //check if the integer is in the range [0, 93]
         fprintf(stderr, "Error: -k value %ld out of range [0, 93]\n", val);
         return -1;
     }
 
-    *out_key = (int)val;
+    *out_key = (int)val;  //store the integer in the output key
     return 0;
 }
 
@@ -208,15 +206,15 @@ static int parse_key(const char *arg, int *out_key)
  * --------------------------------------------------------------------------- */
 static int parse_mode(const char *arg)
 {
-    if (strcmp(arg, "encrypt") == 0) {
+    if (strcmp(arg, "encrypt") == 0) {  //check if the mode is encrypt
         return 1;
     }
-    if (strcmp(arg, "decrypt") == 0) {
+    if (strcmp(arg, "decrypt") == 0) {  //check if the mode is decrypt
         return 0;
     }
 
     fprintf(stderr,
-            "Error: -p must be 'encrypt' or 'decrypt', got '%s'\n", arg);
+            "Error: -p must be 'encrypt' or 'decrypt', got '%s'\n", arg);  //print the error message if the mode is invalid
     return -1;
 }
 
@@ -236,7 +234,7 @@ int main(int argc, char **argv)
     int mode_encrypt;
     int c;
 
-    opterr = 0; /* we handle option errors ourselves */
+    opterr = 0; //we handle option errors ourselves
 
     while ((c = getopt(argc, argv, "i:o:k:p:")) != -1) {
         switch (c) {
@@ -303,7 +301,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    process_buffer(input_buf, output_buf, input_len, key, mode_encrypt);
+    process_buffer(input_buf, output_buf, input_len, key, mode_encrypt);  //call the process_buffer function to process the buffer
 
     /* Write results to the output file */
     if (write_entire_file(output_path, output_buf, input_len) != 0) {
@@ -312,7 +310,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    free(input_buf);
-    free(output_buf);
+    free(input_buf);  //free the input buffer
+    free(output_buf);  //free the output buffer
     return 0;
 }
