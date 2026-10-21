@@ -7,19 +7,22 @@
  *
  * Usage:
  *   ./cipher -i <input_file> -o <output_file> -k <key> -p <encrypt|decrypt>
+ *
+ * Compile:
+ *   gcc -std=c11 cipher.c -o cipher
  */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cctype>
-#include <cerrno>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
 #include <unistd.h>   /* getopt */
 
 /* Printable ASCII range: '!' (33) .. '~' (126) => 94 characters */
-static const int RANGE_START = 33;   /* '!' */
-static const int RANGE_END   = 126;  /* '~' */
-static const int RANGE_SIZE  = 94;   /* 126 - 33 + 1 */
+#define RANGE_START 33   /* '!' */
+#define RANGE_END   126  /* '~' */
+#define RANGE_SIZE  94   /* 126 - 33 + 1 */
 
 /* ---------------------------------------------------------------------------
  * Print program usage information to stderr.
@@ -46,6 +49,8 @@ static void print_usage(const char *prog_name)
 static char shift_char(char ch, int key, int direction)
 {
     unsigned char c = (unsigned char)ch;
+    int offset;
+    int shifted;
 
     /* Leave non-printable / out-of-range characters alone */
     if (c < RANGE_START || c > RANGE_END) {
@@ -53,8 +58,8 @@ static char shift_char(char ch, int key, int direction)
     }
 
     /* Map character into [0, 93], apply signed shift, wrap, map back */
-    int offset = (int)c - RANGE_START;
-    int shifted = offset + (direction * key);
+    offset = (int)c - RANGE_START;
+    shifted = offset + (direction * key);
 
     /* Positive modulo so the result is always in [0, RANGE_SIZE) */
     shifted = ((shifted % RANGE_SIZE) + RANGE_SIZE) % RANGE_SIZE;
@@ -63,15 +68,16 @@ static char shift_char(char ch, int key, int direction)
 }
 
 /* ---------------------------------------------------------------------------
- * Encrypt or decrypt an entire buffer in place (or into a separate buffer).
+ * Encrypt or decrypt an entire buffer into a separate buffer.
  * mode_encrypt != 0 => encrypt; otherwise decrypt.
  * --------------------------------------------------------------------------- */
 static void process_buffer(const char *input, char *output, size_t length,
                            int key, int mode_encrypt)
 {
+    size_t i;
     int direction = mode_encrypt ? 1 : -1;
 
-    for (size_t i = 0; i < length; i++) {
+    for (i = 0; i < length; i++) {
         output[i] = shift_char(input[i], key, direction);
     }
 }
@@ -83,7 +89,12 @@ static void process_buffer(const char *input, char *output, size_t length,
  * --------------------------------------------------------------------------- */
 static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
 {
-    FILE *fp = fopen(path, "rb");
+    FILE *fp;
+    long size;
+    char *buf;
+    size_t nread;
+
+    fp = fopen(path, "rb");
     if (!fp) {
         fprintf(stderr, "Error: could not open input file '%s': %s\n",
                 path, strerror(errno));
@@ -97,7 +108,7 @@ static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
         return -1;
     }
 
-    long size = ftell(fp);
+    size = ftell(fp);
     if (size < 0) {
         fprintf(stderr, "Error: could not determine size of '%s'\n", path);
         fclose(fp);
@@ -110,14 +121,14 @@ static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
         return -1;
     }
 
-    char *buf = (char *)malloc((size_t)size + 1);
+    buf = (char *)malloc((size_t)size + 1);
     if (!buf) {
         fprintf(stderr, "Error: out of memory reading '%s'\n", path);
         fclose(fp);
         return -1;
     }
 
-    size_t nread = fread(buf, 1, (size_t)size, fp);
+    nread = fread(buf, 1, (size_t)size, fp);
     if (nread != (size_t)size) {
         fprintf(stderr, "Error: failed to read entire input file '%s'\n", path);
         free(buf);
@@ -139,14 +150,17 @@ static int read_entire_file(const char *path, char **out_buf, size_t *out_len)
  * --------------------------------------------------------------------------- */
 static int write_entire_file(const char *path, const char *buf, size_t length)
 {
-    FILE *fp = fopen(path, "wb");
+    FILE *fp;
+    size_t nwritten;
+
+    fp = fopen(path, "wb");
     if (!fp) {
         fprintf(stderr, "Error: could not open output file '%s': %s\n",
                 path, strerror(errno));
         return -1;
     }
 
-    size_t nwritten = fwrite(buf, 1, length, fp);
+    nwritten = fwrite(buf, 1, length, fp);
     if (nwritten != length) {
         fprintf(stderr, "Error: failed to write entire output file '%s'\n", path);
         fclose(fp);
@@ -168,9 +182,11 @@ static int write_entire_file(const char *path, const char *buf, size_t length)
  * --------------------------------------------------------------------------- */
 static int parse_key(const char *arg, int *out_key)
 {
-    errno = 0;
     char *endptr = NULL;
-    long val = strtol(arg, &endptr, 10);
+    long val;
+
+    errno = 0;
+    val = strtol(arg, &endptr, 10);
 
     if (endptr == arg || *endptr != '\0' || errno == ERANGE) {
         fprintf(stderr, "Error: -k requires an integer, got '%s'\n", arg);
@@ -209,12 +225,16 @@ static int parse_mode(const char *arg)
  * --------------------------------------------------------------------------- */
 int main(int argc, char **argv)
 {
-    char *input_path  = NULL;
+    char *input_path = NULL;
     char *output_path = NULL;
-    char *mode_arg    = NULL;
-    int   key         = 0;
-    int   key_provided = 0;
-    int   c;
+    char *mode_arg = NULL;
+    char *input_buf = NULL;
+    char *output_buf = NULL;
+    size_t input_len = 0;
+    int key = 0;
+    int key_provided = 0;
+    int mode_encrypt;
+    int c;
 
     opterr = 0; /* we handle option errors ourselves */
 
@@ -264,21 +284,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int mode_encrypt = parse_mode(mode_arg);
+    mode_encrypt = parse_mode(mode_arg);
     if (mode_encrypt < 0) {
         print_usage(argv[0]);
         return 1;
     }
 
     /* Read the entire input file */
-    char *input_buf = NULL;
-    size_t input_len = 0;
     if (read_entire_file(input_path, &input_buf, &input_len) != 0) {
         return 1;
     }
 
     /* Allocate output buffer and process every character */
-    char *output_buf = (char *)malloc(input_len + 1);
+    output_buf = (char *)malloc(input_len + 1);
     if (!output_buf) {
         fprintf(stderr, "Error: out of memory for output buffer\n");
         free(input_buf);
