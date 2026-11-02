@@ -43,7 +43,7 @@ echo "---------------------------------------------------------------"
 # Purpose - Get info about your operating system
 function os_info(){
 write_header " System information "
-echo "Operating system : $([ENTER CODE HERE])"
+echo "Operating system : $(uname -a)"
 [ -x $LSB ] && $LSB -a || echo "$LSB command is not insalled (set \$LSB variable)"
 #pause "Press [Enter] key to continue..."
 pause
@@ -53,11 +53,11 @@ pause
 function host_info(){
 local dnsips=$(sed -e '/^$/d' /etc/resolv.conf | awk '{if (tolower($1)=="nameserver") print $2}')
 write_header " Hostname and DNS information "
-echo "Hostname : $([ENTER CODE HERE])"
-echo "DNS domain : $([ENTER CODE HERE])"
-echo "Fully qualified domain name : $([ENTER CODE HERE])"
-echo "Network address (IP) : $([ENTER CODE HERE])"
-echo "DNS name servers (DNS IP) : ${dnsips}"
+echo "Hostname : $(hostname)"
+echo "DNS domain : $(hostname -d)"
+echo "Fully qualified domain name : $(hostname -f)"
+echo "Network address (IP) : $(hostname -I)"
+echo "DNS name servers (DNS IP) : $(nmcli dev show | awk '/IP4.DNS/ {print $2}')"
 pause
 }
 
@@ -68,17 +68,17 @@ write_header " Network information "
 echo "Total network interfaces found : $(wc -w <<<${devices})"
 
 echo "*** IP Addresses Information ***"
-[ENTER CODE HERE]
+ifconfig
 
 echo "***********************"
 echo "*** Network routing ***"
 echo "***********************"
-[ENTER CODE HERE]
+ip r
 
 echo "**************************************"
 echo "*** Interface traffic information ***"
 echo "**************************************"
-[ENTER CODE HERE]
+ip -s link show
 
 pause 
 }
