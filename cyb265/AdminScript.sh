@@ -57,7 +57,7 @@ echo "Hostname : $(hostname)"
 echo "DNS domain : $(hostname -d)"
 echo "Fully qualified domain name : $(hostname -f)"
 echo "Network address (IP) : $(hostname -I)"
-echo "DNS name servers (DNS IP) : $(nmcli dev show | awk '/IP4.DNS/ {print $2}')"
+echo "DNS name servers (DNS IP) : ${dnsips}"
 pause
 }
 
@@ -88,7 +88,7 @@ pause
 function user_info(){
 local cmd="$1"
 case "$cmd" in 
-who) write_header " Who is online "; [ENTER CODE HERE]; pause ;;
+who) write_header " Who is online "; w; pause ;;
 last) write_header " List of last logged in users "; last ; pause ;;
 esac 
 }
@@ -96,16 +96,16 @@ esac
 # Purpose - Display used and free memory info
 function mem_info(){
 write_header " Free and used memory "
-[ENTER CODE HERE]
+free -h
 
 echo "*********************************"
 echo "*** Virtual memory statistics ***"
 echo "*********************************"
-[ENTER CODE HERE]
+vmstat
 echo "***********************************"
 echo "*** Top 5 memory eating process ***"
 echo "***********************************" 
-[ENTER CODE HERE] 
+ps -el --sort=-rss | head -6 #list and sort processes then get 6 first line (header + top 5 memory eating processes)
 pause
 }
 
