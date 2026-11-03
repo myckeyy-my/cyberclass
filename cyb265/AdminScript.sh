@@ -181,18 +181,18 @@ case $processmenuchoice in
 
 1 )
 	clear && echo "" && echo "${txtcyn}(press ENTER or use arrow keys to scroll list, press Q to return to menu)${txtrst}" | centerwide && read
-	[ENTER CODE HERE] | less
+	ps aux | less
 ;;
 
 2 )
 	clear && echo "" && echo "Please enter the PID of the process you would like to kill:" | centerwide
 	read pidtokill
-	[ENTER CODE HERE] && echo "${txtgrn}Process terminated successfully.${txtrst}" | center || echo "${txtred}Process failed to terminate. Please check the PID and try again.${txtrst}" | centerwide
+	kill -9 $pidtokill && echo "${txtgrn}Process terminated successfully.${txtrst}" | center || echo "${txtred}Process failed to terminate. Please check the PID and try again.${txtrst}" | centerwide
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
 3 )
-	[ENTER CODE HERE]
+	top
 ;;
 
 4 )
@@ -215,7 +215,7 @@ case $processmenuchoice in
 	read shutdownays
 	case $shutdownays in
 		y | Y )
-			[ENTER CODE HERE]
+			systemctl poweroff
 		;;
 		n | N )
 			clear && echo "" && echo "Okay. Nevermind then." | center && echo "" && echo "${txtcyn}(Press ENTER to continue.)${txtrst}" | center && read
