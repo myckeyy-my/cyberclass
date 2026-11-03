@@ -316,7 +316,7 @@ case $usermenuchoice in
 	clear && echo "" && echo "Please enter a name for the new group below:  ${txtcyn}(NO SPACES OR SPECIAL CHARACTERS!)${txtrst}" | centerwide && echo ""
 	read newgroup
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Group $newgroup created successfully.${txtrst}" | center || echo "${txtred}Failed to create group. Please check if group already exists.${txtrst}" | centerwide
+	sudo groupadd "$newgroup" && echo "${txtgrn}Group $newgroup created successfully.${txtrst}" | center || echo "${txtred}Failed to create group. Please check if group already exists.${txtrst}" | centerwide
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center
 	read
 ;;
@@ -329,7 +329,7 @@ case $usermenuchoice in
 	echo "" && echo ""
 	case $deleteuserays in
 		y | Y )
-			[ENTER CODE HERE] && echo "${txtgrn}User $deletethisuser deleted successfully." | center || echo "${txtred}Failed to delete user. Please check username and try again.${txtrst}" | centerwide
+			sudo userdel -r "$deletethisuser" && echo "${txtgrn}User $deletethisuser deleted successfully." | center || echo "${txtred}Failed to delete user. Please check username and try again.${txtrst}" | centerwide
 		;;
 		n | N )
 			echo "Okay. Nevermind then." | center
@@ -346,7 +346,7 @@ case $usermenuchoice in
 	clear && echo "" && echo "Which user's password should be changed?" | centerwide
 	read passuser
 	echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Password for $passuser changed successfully.${txtrst}" | center || echo "${txtred}Failed to change password.${txtrst}" | center
+	sudo passwd "$passuser" && echo "${txtgrn}Password for $passuser changed successfully.${txtrst}" | center || echo "${txtred}Failed to change password.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center
 	read
 ;;
@@ -372,7 +372,7 @@ case $usermenuchoice in
 	read shutdownays
 	case $shutdownays in
 		y | Y )
-			clear && [ENTER CODE HERE]
+			clear && systemctl poweroff
 		;;
 		n | N )
 			clear && echo "" && echo "Okay. Nevermind then." | center && echo "" && echo "${txtcyn}(Press ENTER to continue.)${txtrst}" | center && read
@@ -453,7 +453,7 @@ case $mainmenuchoice in
 	echo "${txtcyn}(if file exists, it will be touched)${txtrst}" | center && echo ""
 	read touchfile
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}File $touchfile touched successfully.${txtrst}" | centerwide || echo "${txtred}Touch failed. How did you even do that?${txtrst}" | center
+	touch "$touchfile" && echo "${txtgrn}File $touchfile touched successfully.${txtrst}" | centerwide || echo "${txtred}Touch failed. How did you even do that?${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -462,7 +462,7 @@ case $mainmenuchoice in
 	echo "Please enter the ${txtcyn}full path${txtrst} and filename for the file to be deleted:" | centerwide && echo ""
 	read rmfile
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}File removed successfully.${txtrst}" | center || echo "${txtred}File removal failed.${txtrst}" | center
+	rm "$rmfile" && echo "${txtgrn}File removed successfully.${txtrst}" | center || echo "${txtred}File removal failed.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -471,7 +471,7 @@ case $mainmenuchoice in
 	echo "Please enter the ${txtcyn}full path${txtrst} for the directory to be created:" | centerwide && echo ""
 	read mkdirdir
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Directory $mkdirdir created successfully.${txtrst}" | centerwide || echo "${txted}Failed to create directory.${txtrst}" | center
+	mkdir "$mkdirdir" && echo "${txtgrn}Directory $mkdirdir created successfully.${txtrst}" | centerwide || echo "${txted}Failed to create directory.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -480,7 +480,7 @@ case $mainmenuchoice in
 	echo "Please enter the ${txtcyn}full path${txtrst} for the directory to be removed:  ${txtcyn}(MUST BE EMPTY!)${txtrst}" | centerwide && echo ""
 	read rmdirdir
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Directory $rmdirdir removed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to remove directory. Please ensure directory is empty.${txtrst}" | centerwide
+	rm -rf "$rmdirdir" && echo "${txtgrn}Directory $rmdirdir removed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to remove directory. Please ensure directory is empty.${txtrst}" | centerwide
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -490,7 +490,7 @@ case $mainmenuchoice in
 	echo "" && echo "Please enter the output file for the symbolic link:  ${txtcyn}(SERIOUSLY, FULL PATH!)${txtrst}" | centerwide && echo ""
 	read symloutfile
 	echo "" && echo ""
-	[ENTER CODE HERE]
+	ls -s "$symlinfile" "$symloutfile"
 	cat $symloutfile && clear && echo "" && echo "${txtgrn}Symbolic link created successfully at $symloutfile${txtrst}" | centerwide || echo "${txtred}Failed to create symbolic link. Please check paths and filenames and try again.${txtrst}" | centerwide 
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
@@ -503,7 +503,7 @@ case $mainmenuchoice in
 	echo "" && echo "Please enter the new group for $chownfile:  ${txtcyn}(GROUP MUST EXIST)${txtrst}" | centerwide && echo ""
 	read chowngroup
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Ownership of $chownfile changed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to change ownership. Please check if user, group and file exist.${txtrst}" | center
+	sudo chown "$chownuser":"$chowngroup" "$chownfile" && echo "${txtgrn}Ownership of $chownfile changed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to change ownership. Please check if user, group and file exist.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -520,7 +520,7 @@ case $mainmenuchoice in
 	echo ""
 	read chmodnum
 	echo "" && echo ""
-	[ENTER CODE HERE] && echo "${txtgrn}Permissions for $chmodfile changed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to set permissions.${txtrst}" | center
+	chmod "$chmodnum" "$chmodfile" && echo "${txtgrn}Permissions for $chmodfile changed successfully.${txtrst}" | centerwide || echo "${txtred}Failed to set permissions.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center && read
 ;;
 
@@ -543,19 +543,19 @@ case $mainmenuchoice in
 		;;
 		
 		2 )
-			[ENTER CODE HERE] || echo "${txtred}Failed to open nano. Please check if it is installed.${txtrst}" | centerwide
+			nano "$editfile" || echo "${txtred}Failed to open nano. Please check if it is installed.${txtrst}" | centerwide
 		;;
 
 		3 )
-			[ENTER CODE HERE] || echo "${txtred}Failed to open mcedit. Please check if it is installed.${txtrst}" | centerwide
+			mcedit "$editfile" || echo "${txtred}Failed to open mcedit. Please check if it is installed.${txtrst}" | centerwide
 		;;
 
 		4 )
-			[ENTER CODE HERE] || echo "${txtred}Failed to open emacs. Please check if it is installed.${txtrst}" | centerwide
+			emacs "$editfile" || echo "${txtred}Failed to open emacs. Please check if it is installed.${txtrst}" | centerwide
 		;;
 
 		5 )
-			[ENTER CODE HERE] || echo "${txtred}Failed to open pico. Please check if it is installed.${txtrst}" | centerwide
+			pico "$editfile" || echo "${txtred}Failed to open pico. Please check if it is installed.${txtrst}" | centerwide
 		;;
 
 		* )
@@ -579,15 +579,15 @@ case $mainmenuchoice in
 	echo ""
 	case $pressmethod in
 		1 )
-			[ENTER CODE HERE] && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
+			gzip "$pressfile" && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
 		;;
 
 		2 )
-			[ENTER CODE HERE] && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
+			bzip2 "$pressfile" && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
 		;;
 
 		3 )
-			[ENTER CODE HERE] && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
+			compress "$pressfile" && echo "${txtgrn}File compressed successfully.${txtrst}" | center || echo "${txtred}File failed to compress.${txtrst}" | center
 		;;
 
 		* )
