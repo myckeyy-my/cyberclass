@@ -294,8 +294,8 @@ case $usermenuchoice in
 	echo "" && echo "What is the new user's full name?  ${txtcyn}(YOU CAN USE SPACES HERE IF YOU WANT!)${txtrst}" | centerwide && echo ""
 	read newuserfullname
 	echo "" && echo ""
-	groupadd $newusergroup
-	useradd -g $newusergroup -c "$newuserfullname" $newusername && echo "${txtgrn}New user $newusername created successfully.${txtrst}" | center || echo "${txtred}Could not create new user.${txtrst}" | center
+	sudo groupadd $newusergroup
+	sudo useradd -g $newusergroup -c "$newuserfullname" $newusername && echo "${txtgrn}New user $newusername created successfully.${txtrst}" | center || echo "${txtred}Could not create new user.${txtrst}" | center
 	echo "" && echo "${txtcyn}(press ENTER to continue)${txtrst}" | center
 	read
 ;;
