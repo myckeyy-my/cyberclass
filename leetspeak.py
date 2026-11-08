@@ -6,8 +6,9 @@ Usage:
 
 Each character may stay as it appears in the base password, or be replaced by
 one of the strings listed for that letter. Matching is case-insensitive, so
-both "e" and "E" use the "E" rule. Characters with no rule are left unchanged.
-One candidate is written per line on stdout.
+both "e" and "E" use the "E" rule. A lowercase letter may also be capitalized,
+so "r" can become "R" even when the JSON list does not contain "R". Characters
+with no rule are left unchanged. One candidate is written per line on stdout.
 """
 
 import json
@@ -28,12 +29,19 @@ def load_rules(path):
     return rules
 
 
+def add_option(options, value):
+    """Append a substitute unless this position already has it."""
+    if value not in options:
+        options.append(value)
+
+
 def options_for(char, rules):
-    """Original character first, then each substitute, without duplicates."""
+    """Original character, its uppercase form, then each JSON substitute."""
     options = [char]
+    if char.isalpha():
+        add_option(options, char.upper())
     for substitute in rules.get(char.upper(), []):
-        if substitute not in options:
-            options.append(substitute)
+        add_option(options, substitute)
     return options
 
 
